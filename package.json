@@ -1,0 +1,19 @@
+{
+  "name": "iw-rc",
+  "version": "0.0.0",
+  "main": "src/server/index.js",
+  "author": "ddhp",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "jsonfile": "^4.0.0",
+    "pg": "6.4.1",
+    "raccoon": "^0.2.8",
+    "redis": "^2.8.0",
+    "sequelize": "^4.31.2"
+  },
+  "devDependencies": {
+    "csvjson": "^5.0.0"
+  }
+}
