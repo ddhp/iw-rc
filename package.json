@@ -6,7 +6,9 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
+    "bcrypt": "^1.0.3",
     "bluebird": "^3.5.1",
+    "express": "^4.16.2",
     "jsonfile": "^4.0.0",
     "pg": "6.4.1",
     "raccoon": "^0.2.8",

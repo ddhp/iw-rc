@@ -2,10 +2,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const raccoon = require('raccoon');
 const Promise = require('bluebird');
+const bcrypt = require('bcrypt');
+const redisClient = require('./lib/redis');
 const client = require('./lib/postgres');
 
 const router = express.Router();
 const Movie = client.Movie;
+const User = client.User;
 
 function parseSequalizeResponse(sres) {
   const res = {};
@@ -15,13 +18,67 @@ function parseSequalizeResponse(sres) {
   return res;
 }
 
-router.use('/login', (req, res) => {
-  console.log('req.path', req.path);
-  res.send(req.path);
+router.post('/login', bodyParser.json(), (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  User.find({where: {name: username}})
+    .then((user) => {
+      if (!user) {
+        return Promise.resolve(res.status(400).json({
+          message: 'username not found',
+        }));
+      } else {
+        const expectedPw = user.password;
+        res.__user__ = user.dataValues;
+        return bcrypt.compare(password, expectedPw)
+      }
+    })
+    .then((isMatched) => {
+      if (isMatched) {
+        // TODO: generate a token and save to redis user
+        delete res.__user__.password;
+        console.log(res.__user__);
+        res.status(200).json(res.__user__);
+      } else {
+        res.status(400).json({
+          message: 'password and username doesn\'t match',
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(400).json({
+        message: 'something went wrong',
+      })
+    });
 });
 
-router.use('/signup', (req, res) => {
-  
+router.use('/signup', bodyParser.json(), (req, res) => {
+  const username = req.body.username;
+  // TODO: hash password with secret
+  const password = req.body.password;
+  const saltRounds = 10;
+  bcrypt.hash(password, saltRounds)
+    .then((hashedpw) => {
+      return User.findOrCreate({where: {
+        name: username, 
+        password: hashedpw,
+      }})
+        .spread((user, created) => {
+          if (created) {
+            // TODO: generate a token and save to redis user
+            delete user.dataValues.password;
+            res.status(200).json({
+              result: user.id,
+              user: user.dataValues,
+            });
+          } else {
+            res.status(400).json({
+              message: `username ${username} already exists`
+            });
+          }
+        });
+    })
 });
 
 router.patch('/movies/:id/ratings', bodyParser.json(), (req, res) => {
