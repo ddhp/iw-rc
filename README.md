@@ -1,4 +1,6 @@
 # IW-RC
+CF recommendation
+
 ## Requirements
 - Node.js 6.x
 - Redis
