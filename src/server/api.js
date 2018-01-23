@@ -3,12 +3,14 @@ const bodyParser = require('body-parser');
 const raccoon = require('raccoon');
 const Promise = require('bluebird');
 const bcrypt = require('bcrypt');
+const UIDGenerator = require('uid-generator');
 const redisClient = require('./lib/redis');
 const client = require('./lib/postgres');
 
 const router = express.Router();
 const Movie = client.Movie;
 const User = client.User;
+const uidgen = new UIDGenerator();
 
 function parseSequalizeResponse(sres) {
   const res = {};
@@ -16,6 +18,11 @@ function parseSequalizeResponse(sres) {
     return res[r.id] = r;
   })
   return res;
+}
+
+function ServerError(code, message) {
+  this.code = code;
+  this.message = message;
 }
 
 router.post('/login', bodyParser.json(), (req, res) => {
@@ -35,72 +42,111 @@ router.post('/login', bodyParser.json(), (req, res) => {
     })
     .then((isMatched) => {
       if (isMatched) {
-        // TODO: generate a token and save to redis user
         delete res.__user__.password;
-        console.log(res.__user__);
-        res.status(200).json(res.__user__);
+        // generate a token and save to redis
+        const token = uidgen.generateSync();
+        return Promise.all([
+          redisClient.sadd(`user:${res.__user__.id}:tokens`, token),
+          redisClient.set(`token:${token}`, res.__user__.id)
+        ]);
       } else {
-        res.status(400).json({
-          message: 'password and username doesn\'t match',
-        });
+        throw new ServerError(400, 'password and username doesn\'t match');
       }
     })
+    .then(() => {
+      res.status(200).json(res.__user__);
+    })
     .catch((err) => {
-      console.log(err);
-      res.status(400).json({
-        message: 'something went wrong',
+      const code = err.code || 500;
+      res.status(code).json({
+        message: err.message || 'something went wrong',
       })
     });
 });
 
 router.use('/signup', bodyParser.json(), (req, res) => {
   const username = req.body.username;
-  // TODO: hash password with secret
   const password = req.body.password;
   const saltRounds = 10;
+  // hash password
   bcrypt.hash(password, saltRounds)
     .then((hashedpw) => {
       return User.findOrCreate({where: {
         name: username, 
         password: hashedpw,
       }})
-        .spread((user, created) => {
-          if (created) {
-            // TODO: generate a token and save to redis user
-            delete user.dataValues.password;
-            res.status(200).json({
-              result: user.id,
-              user: user.dataValues,
-            });
-          } else {
-            res.status(400).json({
-              message: `username ${username} already exists`
-            });
-          }
-        });
     })
+    .then((response) => {
+      const user = response[0];
+      const created = response[1];
+      if (created) {
+        // generate a token and save to redis user
+        res.__user__ = user.dataValues;
+        const token = uidgen.generateSync();
+        return Promise.all([
+          redisClient.sadd(`user:${res.__user__.id}:tokens`, token),
+          redisClient.set(`token:${token}`, res.__user__.id)
+        ]);
+      } else {
+        throw new ServerError(400, `username ${username} already exists`);
+      }
+    })
+    .then(() => {
+      delete res.__user__.password;
+      res.status(200).json({
+        result: res.__user__.id,
+        user: res.__user__,
+      });
+    })
+    .catch((err) => {
+      const code = err.code || 500;
+      res.status(code).json({
+        message: err.message || 'something went wrong',
+      })
+    });
+});
+
+router.get('/tryredis/:id', (req, res) => {
+  const userId = req.params.id;
+  redisClient.SMEMBERS(`user:${userId}:tokens`, (err, tokens) => {
+    redisClient.get(`token:${tokens[0]}`, (err, userId) => {
+      res.send({
+        tokens,
+        userId,
+      });
+    });
+  });
 });
 
 router.patch('/movies/:id/ratings', bodyParser.json(), (req, res) => {
   const movieId = req.params.id;
   const score = req.body.score;
-  // TODO: get userId from auth check/redis response
-  const userId = req.body.userId;
-  console.log(score, userId);
-  let p = Promise.all([
-    raccoon.unliked(userId, movieId, {
-      updateRecs: false
-    }),
-    raccoon.undisliked(userId, movieId, {
-      updateRecs: false
+  const token = req.get('Authorization');
+  let userId;
+  console.log(score, token);
+  // get userId from auth check/redis response
+  redisClient.getAsync(`token:${token}`)
+    .then((id) => {
+      if (id === null) {
+        throw new ServerError(401, 'unauthorized');
+      } else {
+        console.log('userId', id);
+        userId = id;
+        return Promise.all([
+          raccoon.unliked(userId, movieId, {
+            updateRecs: false
+          }),
+          raccoon.undisliked(userId, movieId, {
+            updateRecs: false
+          })
+        ]);
+      }
     })
-  ]);
-  p
     .then(() => {
       if (score > 3){
-        p = raccoon.liked(userId, movieId);
+        return raccoon.liked(userId, movieId);
       } else {
-        p = raccoon.disliked(userId, movieId);
+        return raccoon.disliked(userId, movieId);
       }
     })
     .then(() => {
@@ -124,12 +170,27 @@ router.patch('/movies/:id/ratings', bodyParser.json(), (req, res) => {
         result: res.__result__,
         movies: parseSequalizeResponse(movies),
       })
+    })
+    .catch((err) => {
+      const code = err.code || 500;
+      res.status(code).json({
+        message: err.message || 'something went wrong',
+      })
     });
 });
 
-router.get('/users/:id/recommendations', (req, res) => {
-  const userId = 'testId';
-  raccoon.recommendFor(userId, 10)
+router.get('/users/:id/recommendations', bodyParser.json(), (req, res) => {
+  const token = req.get('Authorization');
+  let userId;
+  // get userId from auth check/redis response
+  redisClient.getAsync(`token:${token}`)
+    .then((userId) => {
+      if (userId === null) {
+        throw new ServerError(401, 'unauthorized');
+      } else {
+        return raccoon.recommendFor(userId, 10)
+      }
+    })
     .then((recs) => {
       res.__result__ = recs;
       return Movie.findAll({ where: { id: recs } })
@@ -138,6 +199,12 @@ router.get('/users/:id/recommendations', (req, res) => {
       res.send({
         result: res.__result__,
         movies: parseSequalizeResponse(movies),
+      })
+    })
+    .catch((err) => {
+      const code = err.code || 500;
+      res.status(code).json({
+        message: err.message || 'something went wrong',
       })
     });
 });
