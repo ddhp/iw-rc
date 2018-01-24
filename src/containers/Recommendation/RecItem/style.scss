@@ -1,0 +1,21 @@
+.rec__item {
+  .title {
+    display: inline-block;
+    margin-right: 1rem;
+  }
+
+  .score-wrapper {
+    display: inline-block;
+  }
+
+  .score {
+    cursor: pointer;
+    font-size: .8rem;
+    padding: .4rem;
+    color: #aaa;
+
+    &:hover {
+      color: blue;
+    }
+  }
+}

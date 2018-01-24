@@ -16,8 +16,8 @@ export class Home extends React.Component {
     getMe: PropTypes.func.isRequired,
     getRecommendations: PropTypes.func.isRequired,
     token: PropTypes.string.isRequired,
-    recs: PropTypes.arrayOf(PropTypes.string),
-    liked: PropTypes.arrayOf(PropTypes.string),
+    recs: PropTypes.arrayOf(PropTypes.object),
+    liked: PropTypes.arrayOf(PropTypes.object),
   }
 
   static defaultProps = {
@@ -34,7 +34,7 @@ export class Home extends React.Component {
     debug('render method');
     const { recs, liked } = this.props;
     const recItems = recs.map(r => (
-      <RecItem rec={r} />
+      <RecItem key={`rec${r.id}`} rec={r} />
     ));
 
     const likedItems = liked.map(r => (
@@ -53,7 +53,7 @@ export class Home extends React.Component {
         </Helmet>
 
         <div className="liked">
-          <h2>Liked</h2>
+          <h2>Rated</h2>
           <ul>
             {likedItems}
           </ul>

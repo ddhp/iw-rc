@@ -35,7 +35,7 @@ export default function globalReducer(state = initialState, action) {
     }
 
     case 'RATE_MOVIE': {
-      const liked = _get(payload, 'result.allLiked', []);
+      const liked = _get(payload, 'result.allWatched', []);
       return update(state, {
         me: {
           liked: {

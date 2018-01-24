@@ -61,7 +61,7 @@ sequelize.sync({ force: true }).then(() => {
       const movieId = movies[ratingRow.movieId].id;
       console.log(userId, movieId, ratingRow.rating);
 
-      if (ratingRow.rating > 3) {
+      if (ratingRow.rating >= 3) {
         raccoon.liked(userId, movieId, {
           updateRecs: false,
         });

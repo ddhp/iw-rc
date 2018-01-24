@@ -5,6 +5,8 @@ import { connect } from 'react-redux';
 import { get as _get } from 'lodash';
 import action from '../../../actions';
 import stdout from '../../../stdout';
+import './style.scss'
+
 
 const debug = stdout('container/Home/RecItem');
 
@@ -23,16 +25,22 @@ class RecItem extends React.Component {
   onClick(e) {
     debug(e.target, this.props.rec);
     const { rateMovie, token, rec } = this.props;
-    const score = e.target
-    rateMovie(rec.id, 5, token);
+    const score = e.target.innerHTML;
+    rateMovie(rec.id, score, token);
   }
 
   render() {
     const { rec } = this.props;
     return (
-      <li key={`rec${rec.id}`}>
-        {rec.title}
-        <span onClick={this.onClick}>5</span>
+      <li className="rec__item">
+        <span className="title">{rec.title}</span>
+        <div className="score-wrapper">
+          <span className="score" onClick={this.onClick}>5</span>
+          <span className="score" onClick={this.onClick}>4</span>
+          <span className="score" onClick={this.onClick}>3</span>
+          <span className="score" onClick={this.onClick}>2</span>
+          <span className="score" onClick={this.onClick}>1</span>
+        </div>
       </li>
     );
   }

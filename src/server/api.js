@@ -169,23 +169,24 @@ router.patch('/movies/:id/ratings', bodyParser.json(), (req, res) => {
       }
     })
     .then(() => {
-      if (score > 3) {
+      if (score >= 3) {
         return raccoon.liked(userId, movieId);
       }
       return raccoon.disliked(userId, movieId);
     })
     .then(() => Promise.all([
-      raccoon.recommendFor(userId, 10),
-      raccoon.allLikedFor(userId),
+      raccoon.recommendFor(userId, 9),
+      raccoon.allWatchedFor(userId),
     ]))
     .then((response) => {
       const recs = response[0];
-      const allLiked = response[1];
+      const allWatched = response[1];
+      debug('recs', recs);
       res.__result__ = {
         recommendations: recs,
-        allLiked,
+        allWatched,
       };
-      const concated = Array.prototype.concat(recs, allLiked);
+      const concated = Array.prototype.concat(recs, allWatched);
       return Movie.findAll({
         where: {
           id: concated,
@@ -226,15 +227,15 @@ router.get('/users/:id', (req, res) => {
         throw new Error();
       }
       res.__user__ = user.dataValues;
-      return raccoon.allLikedFor(user.id);
+      return raccoon.allWatchedFor(user.id);
     })
-    .then((allLiked) => {
-      res.__user__.liked = allLiked;
-      debug('allLiked');
-      debug(allLiked);
+    .then((allWatched) => {
+      res.__user__.liked = allWatched;
+      debug('allWatched');
+      debug(allWatched);
       return Movie.findAll({
         where: {
-          id: allLiked,
+          id: allWatched,
         },
         attributes: ['id', 'title'],
       });
