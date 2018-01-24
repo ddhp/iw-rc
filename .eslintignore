@@ -1,0 +1,6 @@
+dist
+node_modules
+coverage
+src/server/lib/check.js
+src/server/lib/importMovieLense.js
+/ml-latest-small

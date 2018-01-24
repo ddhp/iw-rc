@@ -5,13 +5,13 @@ const csvjson = require('csvjson'),
   path = require('path'),
   jsonfile = require('jsonfile');
 
-const data = fs.readFileSync(path.join(__dirname, './' + name + '.csv'), { encoding : 'utf8'});
+const data = fs.readFileSync(path.join(__dirname, `./${name}.csv`), { encoding: 'utf8' });
 
-const options = { delimiter : ','};
+const options = { delimiter: ',' };
 const jsonData = csvjson.toObject(data, options);
 
-const file = path.join(__dirname, './' + name + '.json');
+const file = path.join(__dirname, `./${name}.json`);
 
-jsonfile.writeFile(file, jsonData, function(err){
+jsonfile.writeFile(file, jsonData, (err) => {
   if (err) { console.log(err); }
 });

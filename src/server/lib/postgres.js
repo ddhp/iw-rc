@@ -11,9 +11,9 @@ const sequelize = new Sequelize(
       max: 15,
       min: 0,
       acquire: 20000,
-      idle: 20000
+      idle: 20000,
     },
-  }
+  },
 );
 
 const User = sequelize.define('user', {
@@ -35,7 +35,7 @@ const Movie = sequelize.define('movie', {
   title: Sequelize.STRING,
 });
 
-module.exports = exports = {
+module.exports = {
   sequelize,
   User,
   Movie,

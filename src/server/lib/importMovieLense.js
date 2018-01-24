@@ -14,21 +14,19 @@ const sequelize = client.sequelize;
 
 redisClient.flushall();
 
-sequelize.sync({force: true}).then(function(){
+sequelize.sync({ force: true }).then(() => {
   const ratingsSrc = jsonfile.readFileSync(ratingsFile);
   const moviesSrc = jsonfile.readFileSync(moviesFile);
   const users = {};
   const movies = {};
 
   // insert movies
-  const insertMovie = (data) => {
-    return Movie.create({title: data.title, movieId: data.movieId})
+  const insertMovie = data => Movie.create({ title: data.title, movieId: data.movieId })
     .then((res) => {
       const movie = res.dataValues;
       console.log('movie created', movie);
       return movies[movie.movieId] = movie;
-    }).catch((err) => {console.log(err)});
-  };
+    }).catch((err) => { console.log(err); });
   const insertMoviePromises = [];
   for (let i = 0; i < moviesSrc.length; i++) {
     const row = moviesSrc[i];
@@ -55,7 +53,7 @@ sequelize.sync({force: true}).then(function(){
 
   Promise.all(Array.prototype.concat(
     insertMoviePromises,
-    insertUserPromises
+    insertUserPromises,
   )).then(() => {
     for (let i = 0; i < ratingsSrc.length; i++) {
       const ratingRow = ratingsSrc[i];
@@ -63,18 +61,18 @@ sequelize.sync({force: true}).then(function(){
       const movieId = movies[ratingRow.movieId].id;
       console.log(userId, movieId, ratingRow.rating);
 
-      if (ratingRow.rating > 3){
+      if (ratingRow.rating > 3) {
         raccoon.liked(userId, movieId, {
-          updateRecs: false
+          updateRecs: false,
         });
       } else {
         raccoon.disliked(userId, movieId, {
-          updateRecs: false
+          updateRecs: false,
         });
-      }        
+      }
     }
-    setTimeout(function(){
+    setTimeout(() => {
       process.exit();
     }, 10000);
-  })
+  });
 });

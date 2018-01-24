@@ -1,0 +1,23 @@
+env:
+  node: true
+  browser: true
+extends: 
+  - 'airbnb'
+parser: 'babel-eslint'
+rules:
+  react/jsx-filename-extension:
+    - error
+    - extensions: 
+      - '.js'
+      - '.jsx'
+
+  react/forbid-prop-types:
+    - off
+
+  # TODO: can be removed after airbnb publish there new version
+  jsx-a11y/anchor-is-valid:
+    - error
+    - components: 
+        - 'Link'
+      specialLink: 
+        - 'to'
