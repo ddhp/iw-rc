@@ -40,7 +40,7 @@ node src/server/lib/importMovieLense.js
 
 5. start express server
 ```
-node src/server/index.js
+yarn start
 ```
 
 6. try it out, visit http://localhost:4321/

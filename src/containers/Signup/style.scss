@@ -1,6 +1,6 @@
 .form--post {
   width: 60%;
-  margin: 0 auto 12rem;
+  margin: 0 auto 2rem;
 
   .form-row {
     display: flex;
@@ -23,16 +23,6 @@
 
   .error-message {
     text-align: center;
-    color: red;
-  }
-
-  .signup {
-    margin-top: 3rem;
-    text-align: center;
-
-    .signup__link {
-      text-decoration: underline;
-    }
   }
 
   .input--username, .input--passwd {

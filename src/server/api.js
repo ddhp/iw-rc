@@ -5,6 +5,8 @@ const raccoon = require('raccoon');
 const Promise = require('bluebird');
 const bcrypt = require('bcrypt');
 const UIDGenerator = require('uid-generator');
+const path = require('path');
+const jsonfile = require('jsonfile');
 const redisClient = require('./lib/redis');
 const client = require('./lib/postgres');
 const stdout = require('../stdout').default;
@@ -16,6 +18,10 @@ const {
 } = client;
 const uidgen = new UIDGenerator();
 const debug = stdout('server:api');
+
+const top10File = path.join(__dirname, '../../ml-latest-small/top10.json');
+const top10 = jsonfile.readFileSync(top10File);
+const top10Ids = top10.map(t => t.id);
 
 function parseSequalizeResponse(sres) {
   const res = {};
@@ -273,8 +279,15 @@ router.get('/users/:id/recommendations', bodyParser.json(), (req, res) => {
       }
     })
     .then((recs) => {
-      res.__result__ = recs;
-      return Movie.findAll({ where: { id: recs } });
+      if (recs.length > 0) {
+        res.__result__ = recs;
+        return Movie.findAll({ where: { id: recs }, attributes: ['id', 'title'] });
+      }
+      return Movie.findAll({ where: { movieId: top10Ids }, attributes: ['id', 'title'] })
+        .then((movies) => {
+          res.__result__ = movies.map(m => m.id);
+          return movies;
+        });
     })
     .then((movies) => {
       res.send({

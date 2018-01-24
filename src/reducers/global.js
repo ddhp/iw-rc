@@ -15,6 +15,7 @@ export default function globalReducer(state = initialState, action) {
       return update(state, {
         $merge: {
           me: payload,
+          token: payload.token,
         },
       });
 

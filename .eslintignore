@@ -3,4 +3,6 @@ node_modules
 coverage
 src/server/lib/check.js
 src/server/lib/importMovieLense.js
+src/server/lib/postgres.js
+src/server/lib/best10.js
 /ml-latest-small

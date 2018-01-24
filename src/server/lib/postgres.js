@@ -13,7 +13,7 @@ const sequelize = new Sequelize(
       acquire: 20000,
       idle: 20000,
     },
-  },
+  }
 );
 
 const User = sequelize.define('user', {
@@ -23,7 +23,7 @@ const User = sequelize.define('user', {
   // },
   userId: Sequelize.STRING,
   name: Sequelize.STRING,
-  password: Sequelize.STRING,
+  password: Sequelize.STRING
 });
 
 const Movie = sequelize.define('movie', {
@@ -32,12 +32,12 @@ const Movie = sequelize.define('movie', {
   //   primaryKey: true,
   // },
   movieId: Sequelize.STRING,
-  title: Sequelize.STRING,
+  title: Sequelize.STRING
 });
 
 module.exports = {
   sequelize,
   User,
-  Movie,
+  Movie
 };
 

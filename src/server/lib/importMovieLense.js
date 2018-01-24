@@ -53,7 +53,7 @@ sequelize.sync({ force: true }).then(() => {
 
   Promise.all(Array.prototype.concat(
     insertMoviePromises,
-    insertUserPromises,
+    insertUserPromises
   )).then(() => {
     for (let i = 0; i < ratingsSrc.length; i++) {
       const ratingRow = ratingsSrc[i];

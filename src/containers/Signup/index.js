@@ -3,19 +3,19 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { get as _get } from 'lodash';
 import classNames from 'classnames';
-import { withRouter, Link } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import queryString from 'query-string';
 import action from '../../actions';
 import stdout from '../../stdout';
 import './style.scss';
 
-const debug = stdout('container/Login');
+const debug = stdout('container/Signup');
 
-class Login extends React.Component {
+class Signup extends React.Component {
   static propTypes = {
     history: PropTypes.object.isRequired,
     location: PropTypes.object.isRequired,
-    login: PropTypes.func.isRequired,
+    signup: PropTypes.func.isRequired,
   }
 
   static validateShowError = text => text.length < 256
@@ -63,13 +63,13 @@ class Login extends React.Component {
   onPostSubmit(e) {
     e.preventDefault();
     const { usernameValue, passwordValue } = this.state;
-    const { login, history } = this.props;
+    const { signup, history } = this.props;
     const payload = {
       username: usernameValue,
       password: passwordValue,
     };
     // if (FormPost.validate(usernameValue)) {
-    login(payload)
+    signup(payload)
       .then(() => {
         history.push('/');
       })
@@ -128,7 +128,6 @@ class Login extends React.Component {
         <div className="btn-wrapper">
           <button className="btn--post-submit" type="submit">Submit</button>
         </div>
-        <p className="signup">Don&apos;t have an acccount? <Link className="signup__link" to="/signup">signup here</Link></p>
       </form>
     );
   }
@@ -145,8 +144,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    login: ({ username, password }) => dispatch(action.login(username, password)),
+    signup: ({ username, password }) => dispatch(action.signup(username, password)),
   };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Login));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Signup));

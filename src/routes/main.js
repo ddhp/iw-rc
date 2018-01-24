@@ -8,6 +8,7 @@ import { getMatchedRoute, renderRoutes } from './utils';
 import NavComponent from '../containers/Nav';
 import HomeComponent from '../containers/Recommendation';
 import LoginComponent from '../containers/Login';
+import SignupComponent from '../containers/Signup';
 import FooterComponent from '../containers/Footer';
 import FourOFourComponent from '../containers/404';
 // import action from '../actions';
@@ -53,6 +54,11 @@ export const getRoutes = () => ({
       path: '/login',
       key: 'login',
       component: LoginComponent,
+    },
+    {
+      path: '/signup',
+      key: 'signup',
+      component: SignupComponent,
     },
     {
       key: '404',

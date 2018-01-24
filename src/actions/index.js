@@ -30,6 +30,24 @@ function login(username, password) {
     });
 }
 
+function signup(username, password) {
+  return dispatch => request
+    .post('/api/signup')
+    .send({ username, password })
+    .then((res) => {
+      debug(res.text);
+      const userInfo = JSON.parse(res.text);
+      const user = userInfo.entities.users[userInfo.result];
+      cookie.set('token', user.token);
+      return dispatch({
+        type: 'LOGIN',
+        payload: user,
+      });
+    }, (err) => {
+      throw err;
+    });
+}
+
 function getRecommendations(token) {
   return dispatch => request
     .get('/api/users/me/recommendations')
@@ -82,6 +100,7 @@ function rateMovie(movieId, rating, token) {
 export default {
   setTokenInCookies,
   login,
+  signup,
   getRecommendations,
   getMe,
   rateMovie,
