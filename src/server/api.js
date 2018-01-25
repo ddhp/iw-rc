@@ -91,29 +91,35 @@ router.use('/signup', bodyParser.json(), (req, res) => {
     password,
   } = req.body;
   const saltRounds = 10;
-  // hash password
-  bcrypt.hash(password, saltRounds)
-    .then(hashedpw => User.findOrCreate({
-      where: {
-        name: username,
-        password: hashedpw,
-      },
-    }))
+  let userInstance;
+  User.findOrCreate({
+    where: {
+      name: username,
+    },
+  })
     .then((response) => {
-      const user = response[0];
+      userInstance = response[0];
       const created = response[1];
-      debug(user.dataValues);
+      debug('created', created);
       if (created) {
-        // generate a token and save to redis user
-        res.__user__ = user.dataValues;
-        const token = uidgen.generateSync();
-        res.__user__.token = token;
-        return Promise.all([
-          redisClient.sadd(`user:${res.__user__.id}:tokens`, token),
-          redisClient.set(`token:${token}`, res.__user__.id),
-        ]);
+        // hash password
+        return bcrypt.hash(password, saltRounds);
       }
       throw new ServerError(400, `username ${username} already exists`);
+    })
+    .then(hashedpw => userInstance.update({
+      password: hashedpw,
+    }))
+    .then((user) => {
+      debug('after update', user.get());
+      // generate a token and save to redis user
+      res.__user__ = user.get();
+      const token = uidgen.generateSync();
+      res.__user__.token = token;
+      return Promise.all([
+        redisClient.sadd(`user:${res.__user__.id}:tokens`, token),
+        redisClient.set(`token:${token}`, res.__user__.id),
+      ]);
     })
     .then(() => {
       const user = res.__user__;
@@ -201,7 +207,7 @@ router.patch('/movies/:id/ratings', bodyParser.json(), (req, res) => {
       });
     })
     .then((movies) => {
-      res.send({
+      res.status(200).json({
         result: res.__result__,
         entities: {
           movies: parseSequalizeResponse(movies),
@@ -249,7 +255,7 @@ router.get('/users/:id', (req, res) => {
     .then((movies) => {
       const user = res.__user__;
       debug(user);
-      res.send({
+      res.status(200).json({
         result: user.id,
         entities: {
           users: {
@@ -290,7 +296,7 @@ router.get('/users/:id/recommendations', bodyParser.json(), (req, res) => {
         });
     })
     .then((movies) => {
-      res.send({
+      res.status(200).json({
         result: res.__result__,
         entities: {
           movies: parseSequalizeResponse(movies),

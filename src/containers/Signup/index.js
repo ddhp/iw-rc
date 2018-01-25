@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { get as _get } from 'lodash';
 import classNames from 'classnames';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import queryString from 'query-string';
 import action from '../../actions';
 import stdout from '../../stdout';
@@ -128,6 +128,7 @@ class Signup extends React.Component {
         <div className="btn-wrapper">
           <button className="btn--post-submit" type="submit">Submit</button>
         </div>
+        <p className="signup">Already have an acccount? <Link className="signup__link" to="/login">login here</Link></p>
       </form>
     );
   }

@@ -25,6 +25,15 @@
     text-align: center;
   }
 
+  .signup {
+    margin-top: 3rem;
+    text-align: center;
+
+    .signup__link {
+      text-decoration: underline;
+    }
+  }
+
   .input--username, .input--passwd {
     flex: 1 1 auto;
     resize: none;
