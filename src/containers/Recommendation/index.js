@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { get as _get } from 'lodash';
+import { withRouter } from 'react-router-dom';
 import action from '../../actions';
 import stdout from '../../stdout';
 import RecItem from './RecItem';
@@ -18,6 +19,7 @@ export class Home extends React.Component {
     token: PropTypes.string.isRequired,
     recs: PropTypes.arrayOf(PropTypes.object),
     liked: PropTypes.arrayOf(PropTypes.object),
+    history: PropTypes.object.isRequired,
   }
 
   static defaultProps = {
@@ -26,8 +28,16 @@ export class Home extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getRecommendations(this.props.token);
-    this.props.getMe(this.props.token);
+    Promise.all([
+      this.props.getRecommendations(this.props.token),
+      this.props.getMe(this.props.token),
+    ])
+      .catch((err) => {
+        const status = _get(err, 'response.status');
+        if (status === 401) {
+          this.props.history.push('/login?ltc=true');
+        }
+      });
   }
 
   render() {
@@ -42,7 +52,7 @@ export class Home extends React.Component {
         {r.title}
       </li>
     ));
-    debug(liked);
+    debug('liked', liked);
 
     return (
       <div className="page--home">
@@ -86,13 +96,9 @@ export function mapStateToProps(state) {
 
 export function mapDispatchToProps(dispatch) {
   return {
-    getRecommendations: (token) => {
-      dispatch(action.getRecommendations(token));
-    },
-    getMe: (token) => {
-      dispatch(action.getMe(token));
-    },
+    getRecommendations: token => dispatch(action.getRecommendations(token)),
+    getMe: token => dispatch(action.getMe(token)),
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Home));

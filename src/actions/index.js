@@ -61,6 +61,9 @@ function getRecommendations(token) {
         type: 'GET_RECOMMENDATIONS',
         payload: JSON.parse(res.text),
       });
+    })
+    .catch((err) => {
+      throw err;
     });
 }
 
@@ -77,6 +80,9 @@ function getMe(token) {
         type: 'GET_ME',
         payload: JSON.parse(res.text),
       });
+    })
+    .catch((err) => {
+      throw err;
     });
 }
 
